@@ -52,6 +52,40 @@ server.tool(
   }
 );
 
+server.tool("get_weather_forecast", {}, async (_args, _extra) => {
+  try {
+    const response = await axios.get(
+      "https://api.weather.gov/gridpoints/TOP/32,81/forecast",
+      {
+        headers: {
+          "User-Agent": "mcp-ts/get-weather-forecast",
+        },
+      }
+    );
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(response.data.properties.periods, null, 2),
+        },
+      ],
+    };
+  } catch (error: unknown) {
+    let errorMessage = "Unknown error occurred";
+
+    if (axios.isAxiosError(error)) {
+      errorMessage = `Error: ${error.message}`;
+    } else if (error instanceof Error) {
+      errorMessage = `Unexpected error: ${error.message}`;
+    }
+
+    return {
+      content: [{ type: "text", text: errorMessage }],
+      isError: true,
+    };
+  }
+});
+
 // Set up stdio transport and connect
 const transport = new StdioServerTransport();
 server
